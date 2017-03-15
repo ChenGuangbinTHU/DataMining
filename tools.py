@@ -107,7 +107,7 @@ def calcTop5Voc(target,togetherMatrix):
 	common = ["the","a","of","and","or",'was','in','at','to','by','on','s','from',
 				'his','as','an','is','','he','she','for','with','that','will','all','one','after',
 				'they','their','had','have','just','be','not','her','m','we','has','but','said',
-				'say','are','it']
+				'say','are','it','this','may','mr','were','also','been','up','one','two','three']
 	if target not in togetherMatrix:
 		print(target + " not exist")
 		return
@@ -136,5 +136,5 @@ def calcTop5Voc(target,togetherMatrix):
 
 if __name__ == '__main__':
 	tfIdfDict,togetherMatrix = buildTfIdfDict()
-	calcTop5Voc("volleyball",togetherMatrix)
+	calcTop5Voc("greenwich",togetherMatrix)
 		#calcTop5Doc(tfIdfDict[str(i)],tfIdfDict,str(i))
