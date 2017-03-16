@@ -9,4 +9,4 @@ if __name__ == '__main__':
 			tools.calcTop5Doc(docName,tfIdfDict,docName,allWords)
 		if s == "2":
 			voc = input("vocabulary:")
-			tools.calcTop5Voc(voc,togetherMatrix)
+			tools.calcTop5Voc(voc,togetherMatrix,allWords)

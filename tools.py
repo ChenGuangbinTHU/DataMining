@@ -105,7 +105,7 @@ def buildTfIdfDict() :
 	# 	f.write(item + ":" + str(IdfDict[item]) + '\n')
 	# f.close()
 
-def calcDistance(docToCalc,tfIdfDoc,allWords) :
+def calcDistanceForDoc(docToCalc,tfIdfDoc,allWords) :
 	dis = 0
 	c = ["the","a","of","and","or",'in','at','to','by','on','s','from',
 				'as','an','is','','he','she','for','with','that','after',
@@ -114,17 +114,16 @@ def calcDistance(docToCalc,tfIdfDoc,allWords) :
 	for word in allWords:
 		if word in c:
 			continue
+		minus = 0
 		if word in docToCalc and word in tfIdfDoc:
 			minus = docToCalc[word] - tfIdfDoc[word]
-			dis += minus*minus
 		elif word in docToCalc and word not in tfIdfDoc:
 			minus = docToCalc[word]
-			dis += minus*minus
 		elif word not in docToCalc and word in tfIdfDoc:
 			minus = tfIdfDoc[word]
-			dis += minus*minus
 		else:
-			dis += 0
+			minus = 0
+		dis += minus * minus
 	return dis
 
 def calcTop5Doc(docToCalc,tfIdfDict,docToCalcName,allWords):
@@ -133,7 +132,7 @@ def calcTop5Doc(docToCalc,tfIdfDict,docToCalcName,allWords):
 	for i in range(0,300):
 		if str(i) == docToCalcName:
 			continue
-		dis = calcDistance(tfIdfDict[docToCalc],tfIdfDict[str(i)],allWords)
+		dis = calcDistanceForDoc(tfIdfDict[docToCalc],tfIdfDict[str(i)],allWords)
 		l.append([str(i),dis])
 	Top5 = heapq.nsmallest(5, l, key=lambda s: s[1])
 	# for item in Top5:
@@ -141,7 +140,24 @@ def calcTop5Doc(docToCalc,tfIdfDict,docToCalcName,allWords):
 	# 	file.write('\n')
 	print(Top5)
 
-def calcTop5Voc(target,togetherMatrix):
+def calcDistanceForVoc(target,compared,allWords):
+	dis = 0
+	for word in allWords:
+		if word in c:
+			continue
+		minus = 0
+		if word in target and word in compared:
+			minus = target[word] - compared[word]
+		elif word in target and word not in compared:
+			minus = target[word]
+		elif word not in target and word in compared:
+			minus = compared[word]
+		else:
+			minus = 0
+		dis += minus*minus
+	return dis
+
+def calcTop5Voc(target,togetherMatrix,allWords):
 	target = target.lower()
 	common = ["the","a","of","and","or",'was','in','at','to','by','on','s','from',
 				'his','as','an','is','','he','she','for','with','that','will','all','one','after',
@@ -151,27 +167,14 @@ def calcTop5Voc(target,togetherMatrix):
 	if target not in togetherMatrix:
 		print(target + " not exist")
 		return
-	dict = sorted(togetherMatrix[target].items(), key=lambda d:d[1], reverse = True)
-	count = 0;
-	i = 0;
-	if target not in common:
-		while count < 5:
-			if dict[i][0].lower() not in common:
-				print(dict[i])
-				count += 1
-			i += 1
-	else:
-		n = 5
-		while i < n:
-			print(i)
-			if dict[i][0] == '':
-				n += 1
-				print("n=" + str(n))
-			else:
-				print(dict[i])
-			i += 1
-	#Top5 = heapq.nlargest(5, list(togetherMatrix[target]), key=lambda s: s[1])
-	#print(Top5)
+	l = []
+	for compareWord in togetherMatrix:
+		if compareWord == target:
+			continue
+		dis = calcDistanceForVoc(togetherMatrix[target],togetherMatrix[compareWord],allWords)
+		l.append([compareWord,dis])
+	Top5 = heapq.nsmallest(5, l, key=lambda s: s[1])
+	print(Top5)
 
 
 if __name__ == '__main__':
