@@ -107,10 +107,10 @@ def buildTfIdfDict() :
 
 def calcDistanceForDoc(docToCalc,tfIdfDoc,allWords) :
 	dis = 0
-	c = ["the","a","of","and","or",'in','at','to','by','on','s','from',
-				'as','an','is','','he','she','for','with','that','after',
-				'they','their','had','have','just','be','her','m','we','has','but'
-				,'are','it','this','were','also','been','new']
+	# c = ["the","a","of","and","or",'in','at','to','by','on','s','from',
+	# 			'as','an','is','','he','she','for','with','that','after',
+	# 			'they','their','had','have','just','be','her','m','we','has','but'
+	# 			,'are','it','this','were','also','been','new']
 	for word in allWords:
 		if word in c:
 			continue
@@ -143,8 +143,6 @@ def calcTop5Doc(docToCalc,tfIdfDict,docToCalcName,allWords):
 def calcDistanceForVoc(target,compared,allWords):
 	dis = 0
 	for word in allWords:
-		if word in c:
-			continue
 		minus = 0
 		if word in target and word in compared:
 			minus = target[word] - compared[word]
