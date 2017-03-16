@@ -112,8 +112,6 @@ def calcDistanceForDoc(docToCalc,tfIdfDoc,allWords) :
 	# 			'they','their','had','have','just','be','her','m','we','has','but'
 	# 			,'are','it','this','were','also','been','new']
 	for word in allWords:
-		if word in c:
-			continue
 		minus = 0
 		if word in docToCalc and word in tfIdfDoc:
 			minus = docToCalc[word] - tfIdfDoc[word]
@@ -157,11 +155,11 @@ def calcDistanceForVoc(target,compared,allWords):
 
 def calcTop5Voc(target,togetherMatrix,allWords):
 	target = target.lower()
-	common = ["the","a","of","and","or",'was','in','at','to','by','on','s','from',
+	c = ["the","a","of","and","or",'was','in','at','to','by','on','s','from',
 				'his','as','an','is','','he','she','for','with','that','will','all','one','after',
 				'they','their','had','have','just','be','not','her','m','we','has','but','said',
 				'say','are','it','this','may','mr','were','also','been','up','one','two','three','new',
-				'york','which','-','who','when','about','him','i','there','out','more','under']
+				'york','which','-','who','when','about','him','i','there','out','more','under','name']
 	if target not in togetherMatrix:
 		print(target + " not exist")
 		return
@@ -171,8 +169,21 @@ def calcTop5Voc(target,togetherMatrix,allWords):
 			continue
 		dis = calcDistanceForVoc(togetherMatrix[target],togetherMatrix[compareWord],allWords)
 		l.append([compareWord,dis])
-	Top5 = heapq.nsmallest(5, l, key=lambda s: s[1])
-	print(Top5)
+	#Top5 = heapq.nsmallest(5, l, key=lambda s: s[1])
+	l = sorted(l,key = lambda s : s[1])
+	i = 0
+	count = 0
+	#print(l)
+	if target not in c:
+		while(count < 5):
+			if l[i][0] not in c:
+				print(l[i])
+				count += 1
+			i += 1
+	else:
+		for i in range(0,5):
+			print(l[i])
+	#print(Top5)
 
 
 if __name__ == '__main__':
