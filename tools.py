@@ -4,23 +4,43 @@ import re
 import math
 import heapq
 
+def getWord(word):
+	word = word.lower()
+	if(word[0] == "-"):
+		return word[1:len(word)]
+	elif(word[0:2] == "\'\'"):
+		return word[2:len(word)]
+	elif(word[len(word)-2:len(word)] == '\'s'):
+		return word[0:len(word)-2]
+	else:
+		return word
+
+
+
 def pretreat(documentName) :
 	result=[]
 	wordDict = {}
 	fd = open(documentName, "r" )
-	result = re.split('[ ,\n\.\';\?:!/-]?',fd.read())#- need to condider
+	result = re.split('[ ,\n\.;\?:!\()"]?',fd.read())#- need to condider
 	for word in result :
 		#print(word)
+		if word == '':
+			continue
+		if(len(word) > 1):
+			word = getWord(word)
+		'''
 		if(len(word) > 1):
 			wordRe = re.findall(r"^[$(\w].*[)%\w]$",word)
 			if(wordRe):
 				word = wordRe[0]
 			else:
 				print("syntax error word:" + word)
+		'''
 		if(word not in wordDict):
 			wordDict[word] = 1
 		else:
 			wordDict[word] += 1
+	#print(wordDict.keys())
 	return len(result),wordDict
 	# for item in wordDict:
 	# 	print(item + ':' + str(wordDict[item]))
@@ -45,7 +65,7 @@ def calcTogetherMatrix(togetherMatrix,wordDict):
 			if word1 == word2:
 				continue
 			if word2 not in togetherMatrix[word1]:
-				togetherMatrix[word1][word2] = 0
+				togetherMatrix[word1][word2] = 1
 			else:
 				togetherMatrix[word1][word2] += 1
 	return togetherMatrix
@@ -70,11 +90,11 @@ def buildTfIdfDict() :
 	# 		f.write("[" + item + "]" + "[" + i + "]" + ":" + str(togetherMatrix[item][i]) + '\n')
 	# f.close()
 
-	# for docName in tfIdfDict:
-	# 	for word in tfIdfDict[docName] :
-	# 		tfIdfDict[docName][word] *= math.log(300/IdfDict[word],10)
+	for docName in tfIdfDict:
+		for word in tfIdfDict[docName] :
+			tfIdfDict[docName][word] *= math.log(300/IdfDict[word],10)
 
-	return tfIdfDict,togetherMatrix
+	return tfIdfDict,togetherMatrix,IdfDict.keys()
 	# for docName in tfIdfDict:
 	# 	print(docName)
 	# 	print(tfIdfDict[docName])
@@ -85,21 +105,40 @@ def buildTfIdfDict() :
 	# 	f.write(item + ":" + str(IdfDict[item]) + '\n')
 	# f.close()
 
-def calcDistance(docToCalc,tfIdfDoc) :
+def calcDistance(docToCalc,tfIdfDoc,allWords) :
 	dis = 0
-	for word in docToCalc:
-		if word in tfIdfDoc:
-			dis += tfIdfDoc[word]
+	c = ["the","a","of","and","or",'in','at','to','by','on','s','from',
+				'as','an','is','','he','she','for','with','that','after',
+				'they','their','had','have','just','be','her','m','we','has','but'
+				,'are','it','this','were','also','been','new']
+	for word in allWords:
+		if word in c:
+			continue
+		if word in docToCalc and word in tfIdfDoc:
+			minus = docToCalc[word] - tfIdfDoc[word]
+			dis += minus*minus
+		elif word in docToCalc and word not in tfIdfDoc:
+			minus = docToCalc[word]
+			dis += minus*minus
+		elif word not in docToCalc and word in tfIdfDoc:
+			minus = tfIdfDoc[word]
+			dis += minus*minus
+		else:
+			dis += 0
 	return dis
 
-def calcTop5Doc(docToCalc,tfIdfDoc,docToCalcName):
+def calcTop5Doc(docToCalc,tfIdfDict,docToCalcName,allWords):
 	l = []
+	
 	for i in range(0,300):
 		if str(i) == docToCalcName:
 			continue
-		dis = calcDistance(docToCalc,tfIdfDict[str(i)])
+		dis = calcDistance(tfIdfDict[docToCalc],tfIdfDict[str(i)],allWords)
 		l.append([str(i),dis])
-	Top5 = heapq.nlargest(5, l, key=lambda s: s[1])
+	Top5 = heapq.nsmallest(5, l, key=lambda s: s[1])
+	# for item in Top5:
+	# 	file.write(item[0] + " ")
+	# 	file.write('\n')
 	print(Top5)
 
 def calcTop5Voc(target,togetherMatrix):
@@ -107,7 +146,8 @@ def calcTop5Voc(target,togetherMatrix):
 	common = ["the","a","of","and","or",'was','in','at','to','by','on','s','from',
 				'his','as','an','is','','he','she','for','with','that','will','all','one','after',
 				'they','their','had','have','just','be','not','her','m','we','has','but','said',
-				'say','are','it','this','may','mr','were','also','been','up','one','two','three']
+				'say','are','it','this','may','mr','were','also','been','up','one','two','three','new',
+				'york','which','-','who','when','about','him','i','there','out','more','under']
 	if target not in togetherMatrix:
 		print(target + " not exist")
 		return
@@ -135,6 +175,12 @@ def calcTop5Voc(target,togetherMatrix):
 
 
 if __name__ == '__main__':
-	tfIdfDict,togetherMatrix = buildTfIdfDict()
-	calcTop5Voc("greenwich",togetherMatrix)
-		#calcTop5Doc(tfIdfDict[str(i)],tfIdfDict,str(i))
+	file = open('test2.txt','w')
+	tfIdfDict,togetherMatrix,allWords = buildTfIdfDict()
+	for i in range(0,300):
+		print(i)
+		file.write(str(i) + '\'th doc is familiar with')
+		file.write('\n')
+		calcTop5Doc(str(i),tfIdfDict,str(i),allWords)
+	# for i in range(0,1):
+	# 	pretreat(str(i))
