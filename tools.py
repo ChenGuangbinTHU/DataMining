@@ -21,30 +21,17 @@ def pretreat(documentName) :
 	result=[]
 	wordDict = {}
 	fd = open(documentName, "r" )
-	result = re.split('[ ,\n\.;\?:!\()"]?',fd.read())#- need to condider
+	result = re.split('[ ,\n\.;\?:!\()"]?',fd.read())
 	for word in result :
-		#print(word)
 		if word == '':
 			continue
 		if(len(word) > 1):
 			word = getWord(word)
-		'''
-		if(len(word) > 1):
-			wordRe = re.findall(r"^[$(\w].*[)%\w]$",word)
-			if(wordRe):
-				word = wordRe[0]
-			else:
-				print("syntax error word:" + word)
-		'''
 		if(word not in wordDict):
 			wordDict[word] = 1
 		else:
 			wordDict[word] += 1
-	#print(wordDict.keys())
 	return len(result),wordDict
-	# for item in wordDict:
-	# 	print(item + ':' + str(wordDict[item]))
-	# print(len(wordDict))
 
 def calcIdf(IdfDict,wordDict):
 	for word in wordDict:
@@ -54,7 +41,6 @@ def calcIdf(IdfDict,wordDict):
 			IdfDict[word] = 1
 	return IdfDict
 
-#注意C[I,J]和C[J,I]
 def calcTogetherMatrix(togetherMatrix,wordDict): 
 	for word1 in wordDict:
 		word1 = word1.lower()
@@ -76,41 +62,27 @@ def buildTfIdfDict() :
 	tfIdfDict = {}
 	togetherMatrix = {}
 	for i in range(0,300):
-		docLen,wordDictPerDoc = pretreat(str(i))
-		#print(str(i) + ":" + str(docLen))
-		calcTogetherMatrix(togetherMatrix,wordDictPerDoc)
+		docLen,wordDictPerDoc = pretreat(str(i)) #get document's length and its wordDict
+
+		#update togetherMatrix and IdfDict for each document
+		togetherMatrix = calcTogetherMatrix(togetherMatrix,wordDictPerDoc)
 		IdfDict = calcIdf(IdfDict,wordDictPerDoc)
+		
+		#get tf
 		for word in wordDictPerDoc :
 			wordDictPerDoc[word] /= docLen
 		tfIdfDict[str(i)] = wordDictPerDoc
 
-	# f = open('test1.txt', 'w')
-	# for item in togetherMatrix :
-	# 	for i in togetherMatrix[item]:
-	# 		f.write("[" + item + "]" + "[" + i + "]" + ":" + str(togetherMatrix[item][i]) + '\n')
-	# f.close()
-
+	#get idf
 	for docName in tfIdfDict:
 		for word in tfIdfDict[docName] :
 			tfIdfDict[docName][word] *= math.log(300/IdfDict[word],10)
 
 	return tfIdfDict,togetherMatrix,IdfDict.keys()
-	# for docName in tfIdfDict:
-	# 	print(docName)
-	# 	print(tfIdfDict[docName])
-	# 	print('\n\n')
 
-	# f = open('test.txt', 'w')
-	# for item in IdfDict :
-	# 	f.write(item + ":" + str(IdfDict[item]) + '\n')
-	# f.close()
-
+#Euclid distance
 def calcDistanceForDoc(docToCalc,tfIdfDoc,allWords) :
 	dis = 0
-	# c = ["the","a","of","and","or",'in','at','to','by','on','s','from',
-	# 			'as','an','is','','he','she','for','with','that','after',
-	# 			'they','their','had','have','just','be','her','m','we','has','but'
-	# 			,'are','it','this','were','also','been','new']
 	for word in allWords:
 		minus = 0
 		if word in docToCalc and word in tfIdfDoc:
@@ -133,11 +105,9 @@ def calcTop5Doc(docToCalc,tfIdfDict,docToCalcName,allWords):
 		dis = calcDistanceForDoc(tfIdfDict[docToCalc],tfIdfDict[str(i)],allWords)
 		l.append([str(i),dis])
 	Top5 = heapq.nsmallest(5, l, key=lambda s: s[1])
-	# for item in Top5:
-	# 	file.write(item[0] + " ")
-	# 	file.write('\n')
 	print(Top5)
 
+#Euclid distance
 def calcDistanceForVoc(target,compared,allWords):
 	dis = 0
 	for word in allWords:
@@ -155,11 +125,15 @@ def calcDistanceForVoc(target,compared,allWords):
 
 def calcTop5Voc(target,togetherMatrix,allWords):
 	target = target.lower()
+
+	#most common words need to be removed
 	c = ["the","a","of","and","or",'was','in','at','to','by','on','s','from',
 				'his','as','an','is','','he','she','for','with','that','will','all','one','after',
 				'they','their','had','have','just','be','not','her','m','we','has','but','said',
 				'say','are','it','this','may','mr','were','also','been','up','one','two','three','new',
 				'york','which','-','who','when','about','him','i','there','out','more','under','name']
+	
+
 	if target not in togetherMatrix:
 		print(target + " not exist")
 		return
@@ -169,11 +143,11 @@ def calcTop5Voc(target,togetherMatrix,allWords):
 			continue
 		dis = calcDistanceForVoc(togetherMatrix[target],togetherMatrix[compareWord],allWords)
 		l.append([compareWord,dis])
-	#Top5 = heapq.nsmallest(5, l, key=lambda s: s[1])
 	l = sorted(l,key = lambda s : s[1])
 	i = 0
 	count = 0
-	#print(l)
+	
+	#if word not in c
 	if target not in c:
 		while(count < 5):
 			if l[i][0] not in c:
@@ -183,16 +157,5 @@ def calcTop5Voc(target,togetherMatrix,allWords):
 	else:
 		for i in range(0,5):
 			print(l[i])
-	#print(Top5)
 
 
-if __name__ == '__main__':
-	file = open('test2.txt','w')
-	tfIdfDict,togetherMatrix,allWords = buildTfIdfDict()
-	for i in range(0,300):
-		print(i)
-		file.write(str(i) + '\'th doc is familiar with')
-		file.write('\n')
-		calcTop5Doc(str(i),tfIdfDict,str(i),allWords)
-	# for i in range(0,1):
-	# 	pretreat(str(i))
